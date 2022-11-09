@@ -25,7 +25,7 @@ class FlutterReactiveBle {
     required DeviceConnector deviceConnector,
     required ConnectedDeviceOperation connectedDeviceOperation,
     required Logger debugLogger,
-    required Future<void> initialization,
+    required Completer<void> initialization,
     required ReactiveBlePlatform reactiveBlePlatform,
   }) {
     _deviceScanner = deviceScanner;
@@ -47,7 +47,8 @@ class FlutterReactiveBle {
   /// A stream providing the host device BLE subsystem status updates.
   ///
   /// Also see [status].
-  Stream<BleStatus> get statusStream => Repeater(onListenEmitFrom: () async* {
+  Stream<BleStatus> get statusStream =>
+      Repeater(onListenEmitFrom: () async* {
         await initialize();
         yield _status;
         yield* _statusStream;
@@ -85,7 +86,7 @@ class FlutterReactiveBle {
     _statusStream.listen((status) => _status = status);
   }
 
-  Future<void>? _initialization;
+  Completer<void>? _initialization;
 
   late DeviceConnector _deviceConnector;
   late ConnectedDeviceOperation _connectedDeviceOperator;
@@ -99,17 +100,18 @@ class FlutterReactiveBle {
   /// operation is triggered.
   Future<void> initialize() async {
     if (_initialization == null) {
+      _initialization = Completer();
+
       _debugLogger = DebugLogger(
         'REACTIVE_BLE',
         print,
       );
 
-      ReactiveBlePlatform.instance =
-          const ReactiveBleMobilePlatformFactory().create();
+      ReactiveBlePlatform.instance = const ReactiveBleMobilePlatformFactory().create();
 
       _blePlatform = ReactiveBlePlatform.instance;
 
-      _initialization ??= _blePlatform.initialize();
+      await _blePlatform.initialize();
 
       _connectedDeviceOperator = ConnectedDeviceOperationImpl(
         blePlatform: _blePlatform,
@@ -130,8 +132,9 @@ class FlutterReactiveBle {
         delayAfterScanFailure: const Duration(seconds: 10),
       );
 
-      await _initialization;
+      _initialization!.complete(null);
     }
+    await _initialization!.future;
   }
 
   /// Deinitializes this [FlutterReactiveBle] instance and its platform-specific
@@ -152,17 +155,18 @@ class FlutterReactiveBle {
   /// Be aware that a read request could be satisfied by a notification delivered
   /// for the same characteristic via [characteristicValueStream] before the actual
   /// read response arrives (due to the design of iOS BLE API).
-  Future<List<int>> readCharacteristic(
-      QualifiedCharacteristic characteristic) async {
+  Future<List<int>> readCharacteristic(QualifiedCharacteristic characteristic) async {
     await initialize();
-    return _connectedDeviceOperator.readCharacteristic(characteristic);
+    print("read: $characteristic");
+    final r = await _connectedDeviceOperator.readCharacteristic(characteristic);
+    print("got: $characteristic: $r");
+    return r;
   }
 
   /// Writes a value to the specified characteristic awaiting for an acknowledgement.
   ///
   /// The returned future completes with an error in case of a failure during writing.
-  Future<void> writeCharacteristicWithResponse(
-    QualifiedCharacteristic characteristic, {
+  Future<void> writeCharacteristicWithResponse(QualifiedCharacteristic characteristic, {
     required List<int> value,
   }) async {
     await initialize();
@@ -180,8 +184,7 @@ class FlutterReactiveBle {
   /// the BLE device is still responsive.
   ///
   /// The returned future completes with an error in case of a failure during writing.
-  Future<void> writeCharacteristicWithoutResponse(
-    QualifiedCharacteristic characteristic, {
+  Future<void> writeCharacteristicWithoutResponse(QualifiedCharacteristic characteristic, {
     required List<int> value,
   }) async {
     await initialize();
@@ -207,12 +210,9 @@ class FlutterReactiveBle {
   /// Requests for a connection parameter update on the connected device.
   ///
   /// Always completes with an error on iOS, as there is no way (and no need) to perform this operation on iOS.
-  Future<void> requestConnectionPriority(
-      {required String deviceId, required ConnectionPriority priority}) async {
+  Future<void> requestConnectionPriority({required String deviceId, required ConnectionPriority priority}) async {
     await initialize();
-
-    return _connectedDeviceOperator.requestConnectionPriority(
-        deviceId, priority);
+    return _connectedDeviceOperator.requestConnectionPriority(deviceId, priority);
   }
 
   /// Scan for BLE peripherals advertising the services specified in [withServices]
@@ -230,7 +230,6 @@ class FlutterReactiveBle {
     bool requireLocationServicesEnabled = true,
   }) async* {
     await initialize();
-
     yield* _deviceScanner.scanForDevices(
       withServices: withServices,
       scanMode: scanMode,
@@ -256,13 +255,13 @@ class FlutterReactiveBle {
     Duration? connectionTimeout,
   }) =>
       initialize().asStream().asyncExpand(
-            (_) => _deviceConnector.connect(
+            (_) =>
+            _deviceConnector.connect(
               id: id,
-              servicesWithCharacteristicsToDiscover:
-                  servicesWithCharacteristicsToDiscover,
+              servicesWithCharacteristicsToDiscover: servicesWithCharacteristicsToDiscover,
               connectionTimeout: connectionTimeout,
             ),
-          );
+      );
 
   /// Scans for a specific device and connects to it in case a device containing the specified [id]
   /// is found and that is advertising the services specified in [withServices].
@@ -284,15 +283,15 @@ class FlutterReactiveBle {
     Duration? connectionTimeout,
   }) =>
       initialize().asStream().asyncExpand(
-            (_) => _deviceConnector.connectToAdvertisingDevice(
+            (_) =>
+            _deviceConnector.connectToAdvertisingDevice(
               id: id,
               withServices: withServices,
               prescanDuration: prescanDuration,
-              servicesWithCharacteristicsToDiscover:
-                  servicesWithCharacteristicsToDiscover,
+              servicesWithCharacteristicsToDiscover: servicesWithCharacteristicsToDiscover,
               connectionTimeout: connectionTimeout,
             ),
-          );
+      );
 
   /// Performs service discovery on the peripheral and returns the discovered services.
   ///
@@ -300,35 +299,36 @@ class FlutterReactiveBle {
   Future<List<DiscoveredService>> discoverServices(String deviceId) =>
       _connectedDeviceOperator.discoverServices(deviceId);
 
+  Future<List<DiscoveredService>> getDiscoveredServices(String deviceId) =>
+      _connectedDeviceOperator.getDiscoveredServices(deviceId);
+
   /// Clears GATT attribute cache on Android using undocumented API. Completes with an error in case of a failure.
   ///
   /// Always completes with an error on iOS, as there is no way (and no need) to perform this operation on iOS.
   ///
   /// The connection may need to be reestablished after successful GATT attribute cache clearing.
-  Future<void> clearGattCache(String deviceId) => _blePlatform
-      .clearGattCache(deviceId)
-      .then((info) => info.dematerialize());
+  Future<void> clearGattCache(String deviceId) =>
+      _blePlatform.clearGattCache(deviceId).then((info) => info.dematerialize());
 
   /// Subscribes to updates from the characteristic specified.
   ///
   /// This stream terminates automatically when the device is disconnected.
-  Stream<List<int>> subscribeToCharacteristic(
-    QualifiedCharacteristic characteristic,
-  ) {
+  Stream<List<int>> subscribeToCharacteristic(QualifiedCharacteristic characteristic,) {
     final isDisconnected = connectedDeviceStream
         .where((update) =>
-            update.deviceId == characteristic.deviceId &&
-            (update.connectionState == DeviceConnectionState.disconnecting ||
-                update.connectionState == DeviceConnectionState.disconnected))
+    update.deviceId == characteristic.deviceId &&
+        (update.connectionState == DeviceConnectionState.disconnecting ||
+            update.connectionState == DeviceConnectionState.disconnected))
         .cast<void>()
         .firstWhere((_) => true, orElse: () {});
 
     return initialize().asStream().asyncExpand(
-          (_) => _connectedDeviceOperator.subscribeToCharacteristic(
+          (_) =>
+          _connectedDeviceOperator.subscribeToCharacteristic(
             characteristic,
             isDisconnected,
           ),
-        );
+    );
   }
 
   /// Sets the verbosity of debug output.

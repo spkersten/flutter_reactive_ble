@@ -10,18 +10,21 @@ abstract class $DiscoveredService {
   const $DiscoveredService();
 
   Uuid get serviceId;
+  String get serviceIndex;
   List<Uuid> get characteristicIds;
   List<DiscoveredCharacteristic> get characteristics;
   List<DiscoveredService> get includedServices;
 
   DiscoveredService copyWith({
     Uuid? serviceId,
+    String? serviceIndex,
     List<Uuid>? characteristicIds,
     List<DiscoveredCharacteristic>? characteristics,
     List<DiscoveredService>? includedServices,
   }) =>
       DiscoveredService(
         serviceId: serviceId ?? this.serviceId,
+        serviceIndex: serviceIndex ?? this.serviceIndex,
         characteristicIds: characteristicIds ?? this.characteristicIds,
         characteristics: characteristics ?? this.characteristics,
         includedServices: includedServices ?? this.includedServices,
@@ -31,6 +34,7 @@ abstract class $DiscoveredService {
       void Function(DiscoveredService$Change change) mutator) {
     final change = DiscoveredService$Change._(
       this.serviceId,
+      this.serviceIndex,
       this.characteristicIds,
       this.characteristics,
       this.includedServices,
@@ -38,6 +42,7 @@ abstract class $DiscoveredService {
     mutator(change);
     return DiscoveredService(
       serviceId: change.serviceId,
+      serviceIndex: change.serviceIndex,
       characteristicIds: change.characteristicIds,
       characteristics: change.characteristics,
       includedServices: change.includedServices,
@@ -46,7 +51,7 @@ abstract class $DiscoveredService {
 
   @override
   String toString() =>
-      "DiscoveredService(serviceId: $serviceId, characteristicIds: $characteristicIds, characteristics: $characteristics, includedServices: $includedServices)";
+      "DiscoveredService(serviceId: $serviceId, serviceIndex: $serviceIndex, characteristicIds: $characteristicIds, characteristics: $characteristics, includedServices: $includedServices)";
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
@@ -54,6 +59,7 @@ abstract class $DiscoveredService {
       other is DiscoveredService &&
       other.runtimeType == runtimeType &&
       serviceId == other.serviceId &&
+      serviceIndex == other.serviceIndex &&
       const DeepCollectionEquality()
           .equals(characteristicIds, other.characteristicIds) &&
       const DeepCollectionEquality()
@@ -66,6 +72,7 @@ abstract class $DiscoveredService {
   int get hashCode {
     var result = 17;
     result = 37 * result + serviceId.hashCode;
+    result = 37 * result + serviceIndex.hashCode;
     result =
         37 * result + const DeepCollectionEquality().hash(characteristicIds);
     result = 37 * result + const DeepCollectionEquality().hash(characteristics);
@@ -78,12 +85,14 @@ abstract class $DiscoveredService {
 class DiscoveredService$Change {
   DiscoveredService$Change._(
     this.serviceId,
+    this.serviceIndex,
     this.characteristicIds,
     this.characteristics,
     this.includedServices,
   );
 
   Uuid serviceId;
+  String serviceIndex;
   List<Uuid> characteristicIds;
   List<DiscoveredCharacteristic> characteristics;
   List<DiscoveredService> includedServices;
@@ -95,6 +104,12 @@ class DiscoveredService$ {
     (serviceIdContainer) => serviceIdContainer.serviceId,
     (serviceIdContainer, serviceId) =>
         serviceIdContainer.copyWith(serviceId: serviceId),
+  );
+
+  static final serviceIndex = Lens<DiscoveredService, String>(
+    (serviceIndexContainer) => serviceIndexContainer.serviceIndex,
+    (serviceIndexContainer, serviceIndex) =>
+        serviceIndexContainer.copyWith(serviceIndex: serviceIndex),
   );
 
   static final characteristicIds = Lens<DiscoveredService, List<Uuid>>(

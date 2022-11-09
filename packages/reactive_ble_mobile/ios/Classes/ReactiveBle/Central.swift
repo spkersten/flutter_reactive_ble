@@ -15,6 +15,7 @@ final class Central {
     typealias DiscoveryHandler = (Central, CBPeripheral, AdvertisementData, RSSI) -> Void
     typealias ConnectionChangeHandler = (Central, CBPeripheral, ConnectionChange) -> Void
     typealias ServicesWithCharacteristicsDiscoveryHandler = (Central, CBPeripheral, [Error]) -> Void
+    typealias GetServicesWithCharacteristicsDiscoveryHandler = (CBPeripheral) -> Void
     typealias CharacteristicNotifyCompletionHandler = (Central, Error?) -> Void
     typealias CharacteristicValueUpdateHandler = (Central, QualifiedCharacteristic, Data?, Error?) -> Void
     typealias CharacteristicWriteCompletionHandler = (Central, QualifiedCharacteristic, Error?) -> Void
@@ -72,7 +73,7 @@ final class Central {
             onServicesDiscovery: papply(weak: self) { central, peripheral, error in
                 central.servicesWithCharacteristicsDiscoveryRegistry.updateTask(
                     key: peripheral.identifier,
-                    action: { $0.handleServicesDiscovery(peripheral: peripheral, error: error) }
+                action: { $0.handleServicesDiscovery(peripheral: peripheral, error: error) }
                 )
             },
             onCharacteristicsDiscovery: papply(weak: self) { central, service, error in
@@ -88,7 +89,9 @@ final class Central {
                 )
             },
             onCharacteristicValueUpdate: papply(weak: self) { central, characteristic, error in
-                onCharacteristicValueUpdate(central, QualifiedCharacteristic(characteristic), characteristic.value, error)
+                let c = QualifiedCharacteristic(characteristic)
+                
+                onCharacteristicValueUpdate(central, c, characteristic.value, error)
             },
             onCharacteristicValueWrite: papply(weak: self) { central, characteristic, error in
                 central.characteristicWriteRegistry.updateTask(
@@ -181,6 +184,14 @@ final class Central {
             completion: completion
         )
     }
+    
+    func getDiscoveredServices(
+        for peripheralID: PeripheralID,
+        completion: GetServicesWithCharacteristicsDiscoveryHandler
+    ) throws -> Void {
+        let peripheral = try resolve(connected: peripheralID)
+        completion(peripheral)
+    }
 
     private func discoverServicesWithCharacteristics(
         for peripheral: CBPeripheral,
@@ -231,7 +242,6 @@ final class Central {
         else { throw Failure.peripheralIsUnknown(qualifiedCharacteristic.peripheralID) }
         
         peripheral.readValue(for: characteristic)
-
     }
 
     func writeWithResponse(
@@ -319,10 +329,10 @@ final class Central {
     private func resolve(characteristic qualifiedCharacteristic: QualifiedCharacteristic) throws -> CBCharacteristic {
         let peripheral = try resolve(connected: qualifiedCharacteristic.peripheralID)
 
-        guard let service = peripheral.services?.first(where: { $0.uuid == qualifiedCharacteristic.serviceID })
+        guard let service = peripheral.services?.filter({ $0.uuid == qualifiedCharacteristic.serviceID })[Int(qualifiedCharacteristic.serviceIndex)]
         else { throw Failure.serviceNotFound(qualifiedCharacteristic.serviceID, qualifiedCharacteristic.peripheralID) }
 
-        guard let characteristic = service.characteristics?.first(where: { $0.uuid == qualifiedCharacteristic.id })
+        guard let characteristic = service.characteristics?.filter({ $0.uuid == qualifiedCharacteristic.id })[Int(qualifiedCharacteristic.index)]
         else { throw Failure.characteristicNotFound(qualifiedCharacteristic) }
 
         return characteristic

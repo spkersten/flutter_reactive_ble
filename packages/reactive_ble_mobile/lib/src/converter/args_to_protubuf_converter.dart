@@ -47,6 +47,10 @@ abstract class ArgsToProtobufConverter {
   pb.ClearGattCacheRequest createClearGattCacheRequest(String deviceId);
 
   pb.DiscoverServicesRequest createDiscoverServicesRequest(String deviceId);
+
+  pb.GetDiscoveredServicesRequest createGetDiscoveredServicesRequest(
+    String deviceId,
+  );
 }
 
 class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
@@ -67,17 +71,14 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
     if (servicesWithCharacteristicsToDiscover != null) {
       final items = <pb.ServiceWithCharacteristics>[];
       for (final serviceId in servicesWithCharacteristicsToDiscover.keys) {
-        final characteristicIds =
-            servicesWithCharacteristicsToDiscover[serviceId]!;
+        final characteristicIds = servicesWithCharacteristicsToDiscover[serviceId]!;
         items.add(
           pb.ServiceWithCharacteristics()
             ..serviceId = (pb.Uuid()..data = serviceId.data)
-            ..characteristics
-                .addAll(characteristicIds.map((c) => pb.Uuid()..data = c.data)),
+            ..characteristics.addAll(characteristicIds.map((c) => pb.Uuid()..data = c.data)),
         );
       }
-      args.servicesWithCharacteristicsToDiscover =
-          pb.ServicesWithCharacteristics()..items.addAll(items);
+      args.servicesWithCharacteristicsToDiscover = pb.ServicesWithCharacteristics()..items.addAll(items);
     }
     return args;
   }
@@ -94,8 +95,9 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
-        ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+        ..serviceIndex = characteristic.serviceIndex ?? "0"
+        ..characteristicUuid = (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicIndex = characteristic.index ?? "0");
 
     return args;
   }
@@ -109,8 +111,9 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
-        ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data))
+        ..serviceIndex = characteristic.serviceIndex ?? "0"
+        ..characteristicUuid = (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicIndex = characteristic.index ?? "")
       ..value = value;
 
     return args;
@@ -123,9 +126,10 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
     final args = pb.NotifyCharacteristicRequest()
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
+        ..serviceIndex = characteristic.serviceIndex ?? "0"
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
-        ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+        ..characteristicUuid = (pb.Uuid()..data = characteristic.characteristicId.data)
+        ..characteristicIndex = characteristic.index ?? "0");
 
     return args;
   }
@@ -138,8 +142,7 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
       ..characteristic = (pb.CharacteristicAddress()
         ..deviceId = characteristic.deviceId
         ..serviceUuid = (pb.Uuid()..data = characteristic.serviceId.data)
-        ..characteristicUuid =
-            (pb.Uuid()..data = characteristic.characteristicId.data));
+        ..characteristicUuid = (pb.Uuid()..data = characteristic.characteristicId.data));
 
     return args;
   }
@@ -196,6 +199,14 @@ class ArgsToProtobufConverterImpl implements ArgsToProtobufConverter {
   @override
   pb.DiscoverServicesRequest createDiscoverServicesRequest(String deviceId) {
     final args = pb.DiscoverServicesRequest()..deviceId = deviceId;
+    return args;
+  }
+
+  @override
+  pb.GetDiscoveredServicesRequest createGetDiscoveredServicesRequest(
+    String deviceId,
+  ) {
+    final args = pb.GetDiscoveredServicesRequest()..deviceId = deviceId;
     return args;
   }
 }

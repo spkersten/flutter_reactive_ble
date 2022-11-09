@@ -106,13 +106,16 @@ class ReactiveBleMobilePlatform extends ReactiveBlePlatform {
           .asStream();
 
   @override
-  Future<void> disconnectDevice(String deviceId) =>
-      _bleMethodChannel.invokeMethod<void>(
+  Future<void> disconnectDevice(String deviceId) {
+    print("disconnectDevice: $deviceId");
+    print(StackTrace.current);
+    return _bleMethodChannel.invokeMethod<void>(
         "disconnectFromDevice",
         _argsToProtobufConverter
             .createDisconnectDeviceArgs(deviceId)
             .writeToBuffer(),
       );
+  }
 
   @override
   Stream<void> readCharacteristic(QualifiedCharacteristic characteristic) =>
@@ -223,6 +226,18 @@ class ReactiveBleMobilePlatform extends ReactiveBlePlatform {
       _bleMethodChannel
           .invokeMethod<List<int>>(
             'discoverServices',
+            _argsToProtobufConverter
+                .createDiscoverServicesRequest(deviceId)
+                .writeToBuffer(),
+          )
+          .then((data) => _protobufConverter.discoveredServicesFrom(data!));
+
+  @override
+  Future<List<DiscoveredService>> getDiscoveredServices(
+          String deviceId) async =>
+      _bleMethodChannel
+          .invokeMethod<List<int>>(
+            'getDiscoveredServices',
             _argsToProtobufConverter
                 .createDiscoverServicesRequest(deviceId)
                 .writeToBuffer(),

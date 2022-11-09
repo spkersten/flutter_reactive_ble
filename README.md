@@ -5,7 +5,7 @@
 Flutter library that handles BLE operations for multiple devices.
 
 ## Contributing
-Feel free to open an new issue or a pull request to make this project better
+Feel free to open a new issue or a pull request to make this project better
 
 ## Setup
 

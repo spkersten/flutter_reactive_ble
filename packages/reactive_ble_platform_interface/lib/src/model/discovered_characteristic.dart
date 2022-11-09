@@ -9,8 +9,12 @@ class DiscoveredCharacteristic {
   /// Unique uuid of the specific characteristic
   final Uuid characteristicId;
 
+  final String index;
+
   /// Service uuid of the characteristic
   final Uuid serviceId;
+
+  final String serviceIndex;
 
   /// Properties
   final bool isReadable;
@@ -21,7 +25,9 @@ class DiscoveredCharacteristic {
 
   const DiscoveredCharacteristic({
     required this.characteristicId,
+    required this.index,
     required this.serviceId,
+    required this.serviceIndex,
     required this.isReadable,
     required this.isWritableWithResponse,
     required this.isWritableWithoutResponse,
@@ -30,16 +36,22 @@ class DiscoveredCharacteristic {
   });
 
   @override
-  String toString() =>
-      "$runtimeType(characteristicId: $characteristicId, serviceId: $serviceId)";
+  String toString() => "$runtimeType(characteristicId: $characteristicId, serviceId: $serviceId)";
 
   @override
-  int get hashCode =>
-      (((17 * 37) + characteristicId.hashCode) * 37 + serviceId.hashCode) * 37;
+  int get hashCode => Object.hash(
+        characteristicId,
+        index,
+        serviceId,
+        serviceIndex,
+      );
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
+      other is DiscoveredCharacteristic &&
       runtimeType == other.runtimeType &&
+      index == other.index &&
       characteristicId == other.characteristicId &&
+      serviceId == other.serviceId &&
       serviceId == other.serviceId;
 }

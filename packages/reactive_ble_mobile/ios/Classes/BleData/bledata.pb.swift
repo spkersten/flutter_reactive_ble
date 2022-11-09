@@ -418,6 +418,8 @@ struct CharacteristicAddress {
   /// Clears the value of `serviceUuid`. Subsequent reads from it will return its default value.
   mutating func clearServiceUuid() {self._serviceUuid = nil}
 
+  var serviceIndex: String = String()
+
   var characteristicUuid: Uuid {
     get {return _characteristicUuid ?? Uuid()}
     set {_characteristicUuid = newValue}
@@ -426,6 +428,8 @@ struct CharacteristicAddress {
   var hasCharacteristicUuid: Bool {return self._characteristicUuid != nil}
   /// Clears the value of `characteristicUuid`. Subsequent reads from it will return its default value.
   mutating func clearCharacteristicUuid() {self._characteristicUuid = nil}
+
+  var characteristicIndex: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -505,6 +509,18 @@ struct DiscoverServicesRequest {
   init() {}
 }
 
+struct GetDiscoveredServicesRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var deviceID: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct DiscoverServicesInfo {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -533,6 +549,8 @@ struct DiscoveredService {
   /// Clears the value of `serviceUuid`. Subsequent reads from it will return its default value.
   mutating func clearServiceUuid() {self._serviceUuid = nil}
 
+  var serviceIndex: String = String()
+
   var characteristicUuids: [Uuid] = []
 
   var includedServices: [DiscoveredService] = []
@@ -560,6 +578,8 @@ struct DiscoveredCharacteristic {
   /// Clears the value of `characteristicID`. Subsequent reads from it will return its default value.
   mutating func clearCharacteristicID() {self._characteristicID = nil}
 
+  var index: String = String()
+
   var serviceID: Uuid {
     get {return _serviceID ?? Uuid()}
     set {_serviceID = newValue}
@@ -568,6 +588,8 @@ struct DiscoveredCharacteristic {
   var hasServiceID: Bool {return self._serviceID != nil}
   /// Clears the value of `serviceID`. Subsequent reads from it will return its default value.
   mutating func clearServiceID() {self._serviceID = nil}
+
+  var serviceIndex: String = String()
 
   var isReadable: Bool = false
 
@@ -612,6 +634,38 @@ struct GenericFailure {
 
   init() {}
 }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+extension ScanForDevicesRequest: @unchecked Sendable {}
+extension DeviceScanInfo: @unchecked Sendable {}
+extension ConnectToDeviceRequest: @unchecked Sendable {}
+extension DeviceInfo: @unchecked Sendable {}
+extension DisconnectFromDeviceRequest: @unchecked Sendable {}
+extension ClearGattCacheRequest: @unchecked Sendable {}
+extension ClearGattCacheInfo: @unchecked Sendable {}
+extension NotifyCharacteristicRequest: @unchecked Sendable {}
+extension NotifyNoMoreCharacteristicRequest: @unchecked Sendable {}
+extension ReadCharacteristicRequest: @unchecked Sendable {}
+extension CharacteristicValueInfo: @unchecked Sendable {}
+extension WriteCharacteristicRequest: @unchecked Sendable {}
+extension WriteCharacteristicInfo: @unchecked Sendable {}
+extension NegotiateMtuRequest: @unchecked Sendable {}
+extension NegotiateMtuInfo: @unchecked Sendable {}
+extension BleStatusInfo: @unchecked Sendable {}
+extension ChangeConnectionPriorityRequest: @unchecked Sendable {}
+extension ChangeConnectionPriorityInfo: @unchecked Sendable {}
+extension CharacteristicAddress: @unchecked Sendable {}
+extension ServiceDataEntry: @unchecked Sendable {}
+extension ServicesWithCharacteristics: @unchecked Sendable {}
+extension ServiceWithCharacteristics: @unchecked Sendable {}
+extension DiscoverServicesRequest: @unchecked Sendable {}
+extension GetDiscoveredServicesRequest: @unchecked Sendable {}
+extension DiscoverServicesInfo: @unchecked Sendable {}
+extension DiscoveredService: @unchecked Sendable {}
+extension DiscoveredCharacteristic: @unchecked Sendable {}
+extension Uuid: @unchecked Sendable {}
+extension GenericFailure: @unchecked Sendable {}
+#endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
@@ -690,15 +744,19 @@ extension DeviceScanInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
     }
-    if let v = self._failure {
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     if !self.serviceData.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.serviceData, fieldNumber: 4)
     }
@@ -750,12 +808,16 @@ extension ConnectToDeviceRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.deviceID.isEmpty {
       try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
     }
-    if let v = self._servicesWithCharacteristicsToDiscover {
+    try { if let v = self._servicesWithCharacteristicsToDiscover {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }
+    } }()
     if self.timeoutInMs != 0 {
       try visitor.visitSingularInt32Field(value: self.timeoutInMs, fieldNumber: 3)
     }
@@ -794,15 +856,19 @@ extension DeviceInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementatio
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.id.isEmpty {
       try visitor.visitSingularStringField(value: self.id, fieldNumber: 1)
     }
     if self.connectionState != 0 {
       try visitor.visitSingularInt32Field(value: self.connectionState, fieldNumber: 2)
     }
-    if let v = self._failure {
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -898,9 +964,13 @@ extension ClearGattCacheInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._failure {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -930,9 +1000,13 @@ extension NotifyCharacteristicRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -962,9 +1036,13 @@ extension NotifyNoMoreCharacteristicRequest: SwiftProtobuf.Message, SwiftProtobu
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -994,9 +1072,13 @@ extension ReadCharacteristicRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1030,15 +1112,19 @@ extension CharacteristicValueInfo: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if !self.value.isEmpty {
       try visitor.visitSingularBytesField(value: self.value, fieldNumber: 2)
     }
-    if let v = self._failure {
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1072,9 +1158,13 @@ extension WriteCharacteristicRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if !self.value.isEmpty {
       try visitor.visitSingularBytesField(value: self.value, fieldNumber: 2)
     }
@@ -1110,12 +1200,16 @@ extension WriteCharacteristicInfo: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristic {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristic {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
-    if let v = self._failure {
+    } }()
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1188,15 +1282,19 @@ extension NegotiateMtuInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.deviceID.isEmpty {
       try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
     }
     if self.mtuSize != 0 {
       try visitor.visitSingularInt32Field(value: self.mtuSize, fieldNumber: 2)
     }
-    if let v = self._failure {
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1300,12 +1398,16 @@ extension ChangeConnectionPriorityInfo: SwiftProtobuf.Message, SwiftProtobuf._Me
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.deviceID.isEmpty {
       try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
     }
-    if let v = self._failure {
+    try { if let v = self._failure {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1322,7 +1424,9 @@ extension CharacteristicAddress: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "deviceId"),
     2: .same(proto: "serviceUuid"),
-    3: .same(proto: "characteristicUuid"),
+    3: .same(proto: "serviceIndex"),
+    4: .same(proto: "characteristicUuid"),
+    5: .same(proto: "characteristicIndex"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1333,21 +1437,33 @@ extension CharacteristicAddress: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.deviceID) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._serviceUuid) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._characteristicUuid) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.serviceIndex) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._characteristicUuid) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.characteristicIndex) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.deviceID.isEmpty {
       try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
     }
-    if let v = self._serviceUuid {
+    try { if let v = self._serviceUuid {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if !self.serviceIndex.isEmpty {
+      try visitor.visitSingularStringField(value: self.serviceIndex, fieldNumber: 3)
     }
-    if let v = self._characteristicUuid {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    try { if let v = self._characteristicUuid {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
+    if !self.characteristicIndex.isEmpty {
+      try visitor.visitSingularStringField(value: self.characteristicIndex, fieldNumber: 5)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -1355,7 +1471,9 @@ extension CharacteristicAddress: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   static func ==(lhs: CharacteristicAddress, rhs: CharacteristicAddress) -> Bool {
     if lhs.deviceID != rhs.deviceID {return false}
     if lhs._serviceUuid != rhs._serviceUuid {return false}
+    if lhs.serviceIndex != rhs.serviceIndex {return false}
     if lhs._characteristicUuid != rhs._characteristicUuid {return false}
+    if lhs.characteristicIndex != rhs.characteristicIndex {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1382,9 +1500,13 @@ extension ServiceDataEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._serviceUuid {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._serviceUuid {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if !self.data.isEmpty {
       try visitor.visitSingularBytesField(value: self.data, fieldNumber: 2)
     }
@@ -1452,9 +1574,13 @@ extension ServiceWithCharacteristics: SwiftProtobuf.Message, SwiftProtobuf._Mess
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._serviceID {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._serviceID {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    }
+    } }()
     if !self.characteristics.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.characteristics, fieldNumber: 2)
     }
@@ -1495,6 +1621,38 @@ extension DiscoverServicesRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 
   static func ==(lhs: DiscoverServicesRequest, rhs: DiscoverServicesRequest) -> Bool {
+    if lhs.deviceID != rhs.deviceID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension GetDiscoveredServicesRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = "GetDiscoveredServicesRequest"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "deviceId"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.deviceID) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.deviceID.isEmpty {
+      try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: GetDiscoveredServicesRequest, rhs: GetDiscoveredServicesRequest) -> Bool {
     if lhs.deviceID != rhs.deviceID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -1543,9 +1701,10 @@ extension DiscoveredService: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   static let protoMessageName: String = "DiscoveredService"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "serviceUuid"),
-    2: .same(proto: "characteristicUuids"),
-    3: .same(proto: "includedServices"),
-    4: .same(proto: "characteristics"),
+    2: .same(proto: "serviceIndex"),
+    3: .same(proto: "characteristicUuids"),
+    4: .same(proto: "includedServices"),
+    5: .same(proto: "characteristics"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1555,32 +1714,41 @@ extension DiscoveredService: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._serviceUuid) }()
-      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.characteristicUuids) }()
-      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.includedServices) }()
-      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.characteristics) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.serviceIndex) }()
+      case 3: try { try decoder.decodeRepeatedMessageField(value: &self.characteristicUuids) }()
+      case 4: try { try decoder.decodeRepeatedMessageField(value: &self.includedServices) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.characteristics) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._serviceUuid {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._serviceUuid {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.serviceIndex.isEmpty {
+      try visitor.visitSingularStringField(value: self.serviceIndex, fieldNumber: 2)
     }
     if !self.characteristicUuids.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.characteristicUuids, fieldNumber: 2)
+      try visitor.visitRepeatedMessageField(value: self.characteristicUuids, fieldNumber: 3)
     }
     if !self.includedServices.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.includedServices, fieldNumber: 3)
+      try visitor.visitRepeatedMessageField(value: self.includedServices, fieldNumber: 4)
     }
     if !self.characteristics.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.characteristics, fieldNumber: 4)
+      try visitor.visitRepeatedMessageField(value: self.characteristics, fieldNumber: 5)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: DiscoveredService, rhs: DiscoveredService) -> Bool {
     if lhs._serviceUuid != rhs._serviceUuid {return false}
+    if lhs.serviceIndex != rhs.serviceIndex {return false}
     if lhs.characteristicUuids != rhs.characteristicUuids {return false}
     if lhs.includedServices != rhs.includedServices {return false}
     if lhs.characteristics != rhs.characteristics {return false}
@@ -1593,12 +1761,14 @@ extension DiscoveredCharacteristic: SwiftProtobuf.Message, SwiftProtobuf._Messag
   static let protoMessageName: String = "DiscoveredCharacteristic"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "characteristicId"),
-    2: .same(proto: "serviceId"),
-    3: .same(proto: "isReadable"),
-    4: .same(proto: "isWritableWithResponse"),
-    5: .same(proto: "isWritableWithoutResponse"),
-    6: .same(proto: "isNotifiable"),
-    7: .same(proto: "isIndicatable"),
+    2: .same(proto: "index"),
+    3: .same(proto: "serviceId"),
+    4: .same(proto: "serviceIndex"),
+    5: .same(proto: "isReadable"),
+    6: .same(proto: "isWritableWithResponse"),
+    7: .same(proto: "isWritableWithoutResponse"),
+    8: .same(proto: "isNotifiable"),
+    9: .same(proto: "isIndicatable"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1608,45 +1778,59 @@ extension DiscoveredCharacteristic: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._characteristicID) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._serviceID) }()
-      case 3: try { try decoder.decodeSingularBoolField(value: &self.isReadable) }()
-      case 4: try { try decoder.decodeSingularBoolField(value: &self.isWritableWithResponse) }()
-      case 5: try { try decoder.decodeSingularBoolField(value: &self.isWritableWithoutResponse) }()
-      case 6: try { try decoder.decodeSingularBoolField(value: &self.isNotifiable) }()
-      case 7: try { try decoder.decodeSingularBoolField(value: &self.isIndicatable) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.index) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._serviceID) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.serviceIndex) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.isReadable) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.isWritableWithResponse) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.isWritableWithoutResponse) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.isNotifiable) }()
+      case 9: try { try decoder.decodeSingularBoolField(value: &self.isIndicatable) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if let v = self._characteristicID {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._characteristicID {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.index.isEmpty {
+      try visitor.visitSingularStringField(value: self.index, fieldNumber: 2)
     }
-    if let v = self._serviceID {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    try { if let v = self._serviceID {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if !self.serviceIndex.isEmpty {
+      try visitor.visitSingularStringField(value: self.serviceIndex, fieldNumber: 4)
     }
     if self.isReadable != false {
-      try visitor.visitSingularBoolField(value: self.isReadable, fieldNumber: 3)
+      try visitor.visitSingularBoolField(value: self.isReadable, fieldNumber: 5)
     }
     if self.isWritableWithResponse != false {
-      try visitor.visitSingularBoolField(value: self.isWritableWithResponse, fieldNumber: 4)
+      try visitor.visitSingularBoolField(value: self.isWritableWithResponse, fieldNumber: 6)
     }
     if self.isWritableWithoutResponse != false {
-      try visitor.visitSingularBoolField(value: self.isWritableWithoutResponse, fieldNumber: 5)
+      try visitor.visitSingularBoolField(value: self.isWritableWithoutResponse, fieldNumber: 7)
     }
     if self.isNotifiable != false {
-      try visitor.visitSingularBoolField(value: self.isNotifiable, fieldNumber: 6)
+      try visitor.visitSingularBoolField(value: self.isNotifiable, fieldNumber: 8)
     }
     if self.isIndicatable != false {
-      try visitor.visitSingularBoolField(value: self.isIndicatable, fieldNumber: 7)
+      try visitor.visitSingularBoolField(value: self.isIndicatable, fieldNumber: 9)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: DiscoveredCharacteristic, rhs: DiscoveredCharacteristic) -> Bool {
     if lhs._characteristicID != rhs._characteristicID {return false}
+    if lhs.index != rhs.index {return false}
     if lhs._serviceID != rhs._serviceID {return false}
+    if lhs.serviceIndex != rhs.serviceIndex {return false}
     if lhs.isReadable != rhs.isReadable {return false}
     if lhs.isWritableWithResponse != rhs.isWritableWithResponse {return false}
     if lhs.isWritableWithoutResponse != rhs.isWritableWithoutResponse {return false}

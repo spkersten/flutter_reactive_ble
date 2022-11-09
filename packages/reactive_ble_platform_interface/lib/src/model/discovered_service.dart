@@ -11,12 +11,15 @@ part 'discovered_service.g.dart';
 class DiscoveredService extends $DiscoveredService {
   const DiscoveredService({
     required this.serviceId,
+    required this.serviceIndex,
     required this.characteristicIds,
     required this.characteristics,
     this.includedServices = const [],
   });
 
   final Uuid serviceId;
+
+  final String serviceIndex;
 
   @CustomEquality(DeepCollectionEquality())
   final List<Uuid> characteristicIds;

@@ -98,7 +98,9 @@ message ChangeConnectionPriorityInfo {
 message CharacteristicAddress {
     string deviceId = 1;
     Uuid serviceUuid = 2;
-    Uuid characteristicUuid = 3;
+    string serviceIndex = 3;
+    Uuid characteristicUuid = 4;
+    string characteristicIndex = 5;
 }
 
 message ServiceDataEntry {
@@ -119,6 +121,10 @@ message DiscoverServicesRequest {
     string deviceId = 1;
 }
 
+message GetDiscoveredServicesRequest {
+    string deviceId = 1;
+}
+
 message DiscoverServicesInfo {
     string deviceId = 1;
     repeated DiscoveredService services = 2;
@@ -126,19 +132,22 @@ message DiscoverServicesInfo {
 
 message DiscoveredService {
     Uuid serviceUuid = 1;
-    repeated Uuid characteristicUuids = 2;
-    repeated DiscoveredService includedServices = 3;
-    repeated DiscoveredCharacteristic characteristics = 4;
+    string serviceIndex = 2;
+    repeated Uuid characteristicUuids = 3;
+    repeated DiscoveredService includedServices = 4;
+    repeated DiscoveredCharacteristic characteristics = 5;
 }
 
 message DiscoveredCharacteristic {
     Uuid characteristicId = 1;
-    Uuid serviceId = 2;
-    bool isReadable = 3;
-    bool isWritableWithResponse = 4;
-    bool isWritableWithoutResponse = 5;
-    bool isNotifiable = 6;
-    bool isIndicatable = 7;
+    string index = 2;
+    Uuid serviceId = 3;
+    string serviceIndex = 4;
+    bool isReadable = 5;
+    bool isWritableWithResponse = 6;
+    bool isWritableWithoutResponse = 7;
+    bool isNotifiable = 8;
+    bool isIndicatable = 9;
 }
 
 message Uuid {

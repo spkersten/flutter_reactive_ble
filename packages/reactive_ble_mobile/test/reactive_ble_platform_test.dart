@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +11,6 @@ import 'package:reactive_ble_mobile/src/reactive_ble_mobile_platform.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
 import 'reactive_ble_platform_test.mocks.dart';
-// ignore_for_file: avoid_implementing_value_types
 
 @GenerateMocks([
   ArgsToProtobufConverter,

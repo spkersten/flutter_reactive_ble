@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
@@ -167,7 +165,9 @@ class ProtobufConverterImpl implements ProtobufConverter {
           pb.CharacteristicAddress message) =>
       QualifiedCharacteristic(
         characteristicId: Uuid(message.characteristicUuid.data),
+        index: message.characteristicIndex,
         serviceId: Uuid(message.serviceUuid.data),
+        serviceIndex: message.serviceIndex,
         deviceId: message.deviceId,
       );
 
@@ -199,13 +199,16 @@ class ProtobufConverterImpl implements ProtobufConverter {
   DiscoveredService _convertService(pb.DiscoveredService service) =>
       DiscoveredService(
         serviceId: Uuid(service.serviceUuid.data),
+        serviceIndex: service.serviceIndex,
         characteristicIds: service.characteristicUuids
             .map((c) => Uuid(c.data))
             .toList(growable: false),
         characteristics: service.characteristics
             .map((c) => DiscoveredCharacteristic(
                 characteristicId: Uuid(c.characteristicId.data),
+                index: c.index,
                 serviceId: Uuid(c.serviceId.data),
+                serviceIndex: c.serviceIndex,
                 isReadable: c.isReadable,
                 isWritableWithResponse: c.isWritableWithResponse,
                 isWritableWithoutResponse: c.isWritableWithoutResponse,

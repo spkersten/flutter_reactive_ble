@@ -11,7 +11,6 @@ class UuidConverter {
     }
 
     fun uuidFromByteArray(bytes: ByteArray): UUID {
-
         return when (bytes.size) {
             byteSize16Bit -> convert16BitToUuid(bytes)
             byteSize32Bit -> convert32BitToUuid(bytes)

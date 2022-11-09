@@ -25,41 +25,45 @@ abstract class ConnectedDeviceOperation {
 
   Future<List<DiscoveredService>> discoverServices(String deviceId);
 
-  Future<void> requestConnectionPriority(
-      String deviceId, ConnectionPriority priority);
+  Future<List<DiscoveredService>> getDiscoveredServices(String deviceId);
+
+  Future<void> requestConnectionPriority(String deviceId, ConnectionPriority priority);
 }
 
 class ConnectedDeviceOperationImpl implements ConnectedDeviceOperation {
-  ConnectedDeviceOperationImpl({required ReactiveBlePlatform blePlatform})
-      : _blePlatform = blePlatform;
+  ConnectedDeviceOperationImpl({required ReactiveBlePlatform blePlatform}) : _blePlatform = blePlatform;
 
   final ReactiveBlePlatform _blePlatform;
 
   @override
-  Stream<CharacteristicValue> get characteristicValueStream =>
-      _blePlatform.charValueUpdateStream;
+  Stream<CharacteristicValue> get characteristicValueStream => _blePlatform.charValueUpdateStream;
 
   @override
   Future<List<int>> readCharacteristic(QualifiedCharacteristic characteristic) {
     final specificCharacteristicValueStream = characteristicValueStream
-        .where((update) => update.characteristic == characteristic)
+        .where((update) {
+          print(update);
+          return _charsMatch(update.characteristic, characteristic);
+        })
         .map((update) => update.result.dematerialize());
 
     return _blePlatform
         .readCharacteristic(characteristic)
         .asyncExpand((_) => specificCharacteristicValueStream)
-        .firstWhere((_) => true,
-            orElse: () => throw NoBleCharacteristicDataReceived());
+        .firstWhere((_) => true, orElse: () => throw NoBleCharacteristicDataReceived());
   }
+
+  bool _charsMatch(QualifiedCharacteristic a, QualifiedCharacteristic b) =>
+      a.serviceId == b.serviceId &&
+      a.characteristicId == b.characteristicId &&
+      (a.index == null || b.index == null || a.index == b.index);
 
   @override
   Future<void> writeCharacteristicWithResponse(
     QualifiedCharacteristic characteristic, {
     required List<int> value,
   }) async =>
-      _blePlatform
-          .writeCharacteristicWithResponse(characteristic, value)
-          .then((info) => info.result.dematerialize());
+      _blePlatform.writeCharacteristicWithResponse(characteristic, value).then((info) => info.result.dematerialize());
 
   @override
   Future<void> writeCharacteristicWithoutResponse(
@@ -75,19 +79,21 @@ class ConnectedDeviceOperationImpl implements ConnectedDeviceOperation {
     QualifiedCharacteristic characteristic,
     Future<void> isDisconnected,
   ) {
-    final specificCharacteristicValueStream = characteristicValueStream
-        .where((update) => update.characteristic == characteristic)
-        .map((update) => update.result.dematerialize());
+    print("subscribeToCharacteristic: $characteristic");
+    final specificCharacteristicValueStream = characteristicValueStream.where((update) {
+      final x = update.characteristic == characteristic;
+      // print(update);
+      return x;
+    }).map((update) => update.result.dematerialize());
 
     final autosubscribingRepeater = Repeater<List<int>>.broadcast(
-      onListenEmitFrom: () => _blePlatform
-          .subscribeToNotifications(characteristic)
-          .asyncExpand((_) => specificCharacteristicValueStream),
-      onCancel: () => _blePlatform
-          .stopSubscribingToNotifications(characteristic)
-          .catchError((Object e) =>
-              // ignore: avoid_print
-              print("Error unsubscribing from notifications: $e")),
+      onListenEmitFrom: () => _blePlatform.subscribeToNotifications(characteristic).asyncExpand((_) {
+        print("THERE WE GO: ${characteristic.serviceIndex}");
+        return specificCharacteristicValueStream;
+      }),
+      onCancel: () => _blePlatform.stopSubscribingToNotifications(characteristic).catchError((Object e) =>
+          // ignore: avoid_print
+          print("Error unsubscribing from notifications: $e")),
     );
 
     isDisconnected.then<void>((_) => autosubscribingRepeater.dispose());
@@ -96,19 +102,18 @@ class ConnectedDeviceOperationImpl implements ConnectedDeviceOperation {
   }
 
   @override
-  Future<int> requestMtu(String deviceId, int mtu) async =>
-      _blePlatform.requestMtuSize(deviceId, mtu);
+  Future<int> requestMtu(String deviceId, int mtu) async => _blePlatform.requestMtuSize(deviceId, mtu);
 
   @override
-  Future<List<DiscoveredService>> discoverServices(String deviceId) =>
-      _blePlatform.discoverServices(deviceId);
+  Future<List<DiscoveredService>> discoverServices(String deviceId) => _blePlatform.discoverServices(deviceId);
 
   @override
-  Future<void> requestConnectionPriority(
-          String deviceId, ConnectionPriority priority) async =>
-      _blePlatform
-          .requestConnectionPriority(deviceId, priority)
-          .then((message) => message.result.dematerialize());
+  Future<List<DiscoveredService>> getDiscoveredServices(String deviceId) =>
+      _blePlatform.getDiscoveredServices(deviceId);
+
+  @override
+  Future<void> requestConnectionPriority(String deviceId, ConnectionPriority priority) async =>
+      _blePlatform.requestConnectionPriority(deviceId, priority).then((message) => message.result.dematerialize());
 }
 
 @visibleForTesting

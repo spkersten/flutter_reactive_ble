@@ -99,10 +99,10 @@ struct ServicesWithCharacteristicsDiscoveryTaskController: PeripheralTaskControl
                 .map { service in (service, CharacteristicsToDiscover.all) }
         case .some(let servicesWithCharacteristicsToDiscover):
             items = servicesWithCharacteristicsToDiscover
-                .compactMap { item in
+                .flatMap { item in
                     knownServices?
-                        .first(where: { $0.uuid == item.key })
-                        .flatMap { service in (service, item.value) }
+                        .filter({ $0.uuid == item.key })
+                        .map { service in (service, item.value) } ?? []
                 }
         }
 

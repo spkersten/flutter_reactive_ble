@@ -9,8 +9,12 @@ class QualifiedCharacteristic {
   /// Unique uuid of the specific characteristic
   final Uuid characteristicId;
 
+  final String? index;
+
   /// Service uuid of the characteristic
   final Uuid serviceId;
+
+  final String? serviceIndex;
 
   /// Device id of the BLE device
   final String deviceId;
@@ -19,21 +23,26 @@ class QualifiedCharacteristic {
     required this.characteristicId,
     required this.serviceId,
     required this.deviceId,
+    this.index,
+    this.serviceIndex,
   });
 
   @override
   String toString() =>
-      "$runtimeType(characteristicId: $characteristicId, serviceId: $serviceId, deviceId: $deviceId)";
+      "$runtimeType(characteristicId: $characteristicId, index: $index, "
+      "serviceId: $serviceId, serviceIndex: $serviceIndex, deviceId: $deviceId)";
 
   @override
   int get hashCode =>
-      (((17 * 37) + characteristicId.hashCode) * 37 + serviceId.hashCode) * 37 +
-      deviceId.hashCode;
+      Object.hash(characteristicId, index, serviceId, serviceIndex, deviceId);
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
+      other is QualifiedCharacteristic &&
       runtimeType == other.runtimeType &&
       characteristicId == other.characteristicId &&
+      index == other.index &&
       serviceId == other.serviceId &&
+      serviceIndex == other.serviceIndex &&
       deviceId == other.deviceId;
 }

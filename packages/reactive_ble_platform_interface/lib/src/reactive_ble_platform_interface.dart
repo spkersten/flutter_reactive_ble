@@ -112,6 +112,12 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
     throw UnimplementedError('discoverServices has not been implemented.');
   }
 
+  /// Returns all services and characteristics that have been discovered
+  Future<List<DiscoveredService>> getDiscoveredServices(
+      String deviceId) {
+    throw UnimplementedError('getDiscoveredServices has not been implemented.');
+  }
+
   /// Performs service discovery on the peripheral and returns the discovered
   /// services.
   ///
@@ -148,7 +154,7 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
         'writeCharacteristicWithoutResponse has not been implemented.');
   }
 
-  /// Starts subscribing to notifications for a specificied characteristic.
+  /// Starts subscribing to notifications for a specified characteristic.
   ///
   /// This stream only returns the result of the operation. Value updates should
   /// be propagated to [charValueUpdateStream].
@@ -159,12 +165,12 @@ abstract class ReactiveBlePlatform extends PlatformInterface {
         'subscribeToNotifications has not been implemented.');
   }
 
-  /// Stops subscribing to notifications for a specificied characteristic.
+  /// Stops subscribing to notifications for a specified characteristic.
   Future<void> stopSubscribingToNotifications(
     QualifiedCharacteristic characteristic,
   ) {
     throw UnimplementedError(
-        'stopSubscribingToNotifiations has not been implemented.');
+        'stopSubscribingToNotifications has not been implemented.');
   }
 
   /// Requests a specific MTU for a connected device.

@@ -106,7 +106,9 @@ final class PluginController {
                 let message = CharacteristicValueInfo.with {
                     $0.characteristic = CharacteristicAddress.with {
                         $0.characteristicUuid = Uuid.with { $0.data = characteristic.id.data }
+                        $0.characteristicIndex = "\(characteristic.index)"
                         $0.serviceUuid = Uuid.with { $0.data = characteristic.serviceID.data }
+                        $0.serviceIndex = "\(characteristic.serviceIndex)"
                         $0.deviceID = characteristic.peripheralID.uuidString
                     }
                     if let value = value {
@@ -282,16 +284,23 @@ final class PluginController {
         }
 
         func makeDiscoveredService(service: CBService) -> DiscoveredService {
-            DiscoveredService.with {
+            let serviceIndex = service.peripheral?.services?.filter({ s in s.uuid == service.uuid }).firstIndex(of: service)
+
+            return DiscoveredService.with {
                 $0.serviceUuid = Uuid.with { $0.data = service.uuid.data }
+                $0.serviceIndex = "\(serviceIndex!)"
                 $0.characteristicUuids = (service.characteristics ?? []).map { characteristic in
                     Uuid.with { $0.data = characteristic.uuid.data }
                 }
                 $0.characteristics = (service.characteristics ?? []).map { characteristic in
-                    DiscoveredCharacteristic.with{
+                    let index = service.characteristics?.filter({ c in c.uuid == characteristic.uuid }).firstIndex(of: characteristic)
+
+                    return DiscoveredCharacteristic.with{
                         $0.characteristicID = Uuid.with{$0.data = characteristic.uuid.data}
+                        $0.index = "\(index!)"
                         if characteristic.service?.uuid.data != nil {
                             $0.serviceID = Uuid.with{$0.data = characteristic.service!.uuid.data}
+                            $0.serviceIndex = "\(serviceIndex!)"
                         }
                         $0.isReadable = characteristic.properties.contains(.read)
                         $0.isWritableWithResponse = characteristic.properties.contains(.write)
@@ -310,6 +319,65 @@ final class PluginController {
                 for: deviceID,
                 discover: .all,
                 completion: { central, peripheral, errors in
+                    completion(.success(DiscoverServicesInfo.with {
+                        $0.deviceID = deviceID.uuidString
+                        $0.services = (peripheral.services ?? []).map(makeDiscoveredService)
+                    }))
+                }
+            )
+        } catch {
+            completion(.failure(PluginError.unknown(error).asFlutterError))
+        }
+    }
+    
+    func getDiscoveredServices(name: String, args: GetDiscoveredServicesRequest, completion: @escaping PlatformMethodCompletionHandler) {
+        guard let central = central
+        else {
+            completion(.failure(PluginError.notInitialized.asFlutterError))
+            return
+        }
+
+        guard let deviceID = UUID(uuidString: args.deviceID)
+        else {
+            completion(.failure(PluginError.invalidMethodCall(method: name, details: "\"deviceID\" is invalid").asFlutterError))
+            return
+        }
+
+        func makeDiscoveredService(service: CBService) -> DiscoveredService {
+            let serviceIndex = service.peripheral?.services?.filter({ s in s.uuid == service.uuid }).firstIndex(of: service)
+
+            return DiscoveredService.with {
+                $0.serviceUuid = Uuid.with { $0.data = service.uuid.data }
+                $0.serviceIndex = "\(serviceIndex!)"
+                $0.characteristicUuids = (service.characteristics ?? []).map { characteristic in
+                    Uuid.with { $0.data = characteristic.uuid.data }
+                }
+                $0.characteristics = (service.characteristics ?? []).map { characteristic in
+                    let index = service.characteristics?.filter({ c in c.uuid == characteristic.uuid }).firstIndex(of: characteristic)
+
+                    return DiscoveredCharacteristic.with{
+                        $0.characteristicID = Uuid.with{$0.data = characteristic.uuid.data}
+                        $0.index = "\(index!)"
+                        if characteristic.service?.uuid.data != nil {
+                            $0.serviceID = Uuid.with{$0.data = characteristic.service!.uuid.data}
+                            $0.serviceIndex = "\(serviceIndex!)"
+                        }
+                        $0.isReadable = characteristic.properties.contains(.read)
+                        $0.isWritableWithResponse = characteristic.properties.contains(.write)
+                        $0.isWritableWithoutResponse = characteristic.properties.contains(.writeWithoutResponse)
+                        $0.isNotifiable = characteristic.properties.contains(.notify)
+                        $0.isIndicatable = characteristic.properties.contains(.indicate)
+                    }
+                }
+ 
+                $0.includedServices = (service.includedServices ?? []).map(makeDiscoveredService)
+            }
+        }
+
+        do {
+            try central.getDiscoveredServices(
+                for: deviceID,
+                completion: { peripheral in
                     completion(.success(DiscoverServicesInfo.with {
                         $0.deviceID = deviceID.uuidString
                         $0.services = (peripheral.services ?? []).map(makeDiscoveredService)
@@ -389,6 +457,7 @@ final class PluginController {
         completion(.success(nil))
 
         do {
+            print("readCharacteristic: \(characteristic)");
             try central.read(characteristic: characteristic)
         } catch {
             guard let sink = characteristicValueUpdateSink
@@ -424,12 +493,14 @@ final class PluginController {
         do {
             try central.writeWithResponse(
                 value: args.value,
-                characteristic: QualifiedCharacteristic(id: characteristic.id, serviceID: characteristic.serviceID, peripheralID: characteristic.peripheralID),
+                characteristic: characteristic,
                 completion: { _, characteristic, error in
                     let result = WriteCharacteristicInfo.with {
                         $0.characteristic = CharacteristicAddress.with {
                             $0.characteristicUuid = Uuid.with { $0.data = characteristic.id.data }
+                            $0.characteristicIndex = "\(characteristic.index)"
                             $0.serviceUuid = Uuid.with { $0.data = characteristic.serviceID.data }
+                            $0.serviceIndex = "\(characteristic.serviceIndex)"
                             $0.deviceID = characteristic.peripheralID.uuidString
                         }
                         if let error = error {
@@ -473,7 +544,7 @@ final class PluginController {
         do {
             try central.writeWithoutResponse(
                 value: args.value,
-                characteristic: QualifiedCharacteristic(id: characteristic.id, serviceID: characteristic.serviceID, peripheralID: characteristic.peripheralID)
+                characteristic: characteristic
             )
             result = WriteCharacteristicInfo.with {
                 $0.characteristic = args.characteristic

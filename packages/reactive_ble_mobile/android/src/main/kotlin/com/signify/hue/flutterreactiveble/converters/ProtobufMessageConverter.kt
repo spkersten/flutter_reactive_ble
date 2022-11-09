@@ -80,7 +80,6 @@ class ProtobufMessageConverter {
             request: pb.CharacteristicAddress,
             value: ByteArray
     ): pb.CharacteristicValueInfo {
-
         val characteristicAddress = createCharacteristicAddress(request)
 
         return pb.CharacteristicValueInfo.newBuilder()
@@ -176,6 +175,7 @@ class ProtobufMessageConverter {
     private fun fromBluetoothGattService(gattService: BluetoothGattService): pb.DiscoveredService {
         return pb.DiscoveredService.newBuilder()
                 .setServiceUuid(createUuidFromParcelUuid(gattService.uuid))
+                .setServiceIndex(gattService.instanceId.toString())
                 .addAllCharacteristicUuids(gattService.characteristics.map { createUuidFromParcelUuid(it.uuid) })
                 .addAllCharacteristics(gattService.characteristics.map {
                     val prop = it.properties
@@ -187,7 +187,9 @@ class ProtobufMessageConverter {
 
                     pb.DiscoveredCharacteristic.newBuilder()
                             .setCharacteristicId(createUuidFromParcelUuid(it.uuid))
+                            .setIndex(it.instanceId.toString())
                             .setServiceId(createUuidFromParcelUuid(it.service.uuid))
+                            .setServiceIndex(gattService.instanceId.toString())
                             .setIsReadable(readable)
                             .setIsWritableWithResponse(write)
                             .setIsWritableWithoutResponse(writeNoResp)
@@ -215,11 +217,12 @@ class ProtobufMessageConverter {
         return pb.CharacteristicAddress.newBuilder()
                 .setDeviceId(request.deviceId)
                 .setServiceUuid(request.serviceUuid)
+                .setServiceIndex(request.serviceIndex)
                 .setCharacteristicUuid(request.characteristicUuid)
+                .setCharacteristicIndex(request.characteristicIndex)
     }
 
     private fun createServiceDataEntry(serviceData: Map<UUID, ByteArray>): List<pb.ServiceDataEntry> {
-
         val serviceDataEntries = mutableListOf<pb.ServiceDataEntry>()
 
         // Needed ugly for-loop because we support API23 that does not support kotlin foreach

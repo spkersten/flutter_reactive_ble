@@ -1,5 +1,6 @@
 package com.signify.hue.flutterreactiveble.ble
 
+import android.bluetooth.BluetoothGattCharacteristic
 import com.polidea.rxandroidble2.RxBleConnection
 import java.util.UUID
 
@@ -50,6 +51,10 @@ data class CharOperationFailed(val deviceId: String, val errorMessage: String) :
 sealed class RequestConnectionPriorityResult
 data class RequestConnectionPrioritySuccess(val deviceId: String) : RequestConnectionPriorityResult()
 data class RequestConnectionPriorityFailed(val deviceId: String, val errorMessage: String) : RequestConnectionPriorityResult()
+
+sealed class CharacteristicLookupResult
+data class CharacteristicLookupSuccess(val deviceId: String, val characteristic: BluetoothGattCharacteristic) : CharacteristicLookupResult()
+data class CharacteristicLookupFailed(val deviceId: String, val errorMessage: String) : CharacteristicLookupResult()
 
 enum class BleStatus(val code: Int) {
     UNKNOWN(code = 0),

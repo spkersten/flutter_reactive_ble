@@ -36,18 +36,19 @@ class PluginController {
             "stopNotifications" to this::stopNotifications,
             "negotiateMtuSize" to this::negotiateMtuSize,
             "requestConnectionPriority" to this::requestConnectionPriority,
-            "discoverServices" to this::discoverServices
+            "discoverServices" to this::discoverServices,
+            "getDiscoveredServices" to this::getDiscoveredServices
     )
 
-    lateinit var bleClient: com.signify.hue.flutterreactiveble.ble.BleClient
+    private lateinit var bleClient: com.signify.hue.flutterreactiveble.ble.BleClient
 
-    lateinit var scanchannel: EventChannel
-    lateinit var deviceConnectionChannel: EventChannel
-    lateinit var charNotificationChannel: EventChannel
+    private lateinit var scanchannel: EventChannel
+    private lateinit var deviceConnectionChannel: EventChannel
+    private lateinit var charNotificationChannel: EventChannel
 
-    lateinit var scandevicesHandler: ScanDevicesHandler
-    lateinit var deviceConnectionHandler: DeviceConnectionHandler
-    lateinit var charNotificationHandler: CharNotificationHandler
+    private lateinit var scanDevicesHandler: ScanDevicesHandler
+    private lateinit var deviceConnectionHandler: DeviceConnectionHandler
+    private lateinit var charNotificationHandler: CharNotificationHandler
 
     private val uuidConverter = UuidConverter()
     private val protoConverter = ProtobufMessageConverter()
@@ -60,19 +61,19 @@ class PluginController {
         charNotificationChannel = EventChannel(messenger, "flutter_reactive_ble_char_update")
         val bleStatusChannel = EventChannel(messenger, "flutter_reactive_ble_status")
 
-        scandevicesHandler = ScanDevicesHandler(bleClient)
+        scanDevicesHandler = ScanDevicesHandler(bleClient)
         deviceConnectionHandler = DeviceConnectionHandler(bleClient)
         charNotificationHandler = CharNotificationHandler(bleClient)
         val bleStatusHandler = BleStatusHandler(bleClient)
 
-        scanchannel.setStreamHandler(scandevicesHandler)
+        scanchannel.setStreamHandler(scanDevicesHandler)
         deviceConnectionChannel.setStreamHandler(deviceConnectionHandler)
         charNotificationChannel.setStreamHandler(charNotificationHandler)
         bleStatusChannel.setStreamHandler(bleStatusHandler)
     }
 
     internal fun deinitialize() {
-        scandevicesHandler.stopDeviceScan()
+        scanDevicesHandler.stopDeviceScan()
         deviceConnectionHandler.disconnectAll()
     }
 
@@ -91,7 +92,7 @@ class PluginController {
     }
 
     private fun scanForDevices(call: MethodCall, result: Result) {
-        scandevicesHandler.prepareScan(pb.ScanForDevicesRequest.parseFrom(call.arguments as ByteArray))
+        scanDevicesHandler.prepareScan(pb.ScanForDevicesRequest.parseFrom(call.arguments as ByteArray))
         result.success(null)
     }
 
@@ -131,11 +132,12 @@ class PluginController {
         result.success(null)
 
         val readCharMessage = pb.ReadCharacteristicRequest.parseFrom(call.arguments as ByteArray)
-        val deviceId = readCharMessage.characteristic.deviceId
         val characteristic = uuidConverter.uuidFromByteArray(readCharMessage.characteristic.characteristicUuid.data.toByteArray())
 
         bleClient.readCharacteristic(
-                readCharMessage.characteristic.deviceId, characteristic
+                readCharMessage.characteristic.deviceId,
+                characteristic,
+                readCharMessage.characteristic.characteristicIndex.toIntOrNull(),
         )
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -184,12 +186,14 @@ class PluginController {
             writeOperation: com.signify.hue.flutterreactiveble.ble.BleClient.(
                     deviceId: String,
                     characteristic: UUID,
+                    characteristicInstanceId: Int?,
                     value: ByteArray
             ) -> Single<com.signify.hue.flutterreactiveble.ble.CharOperationResult>
     ) {
         val writeCharMessage = pb.WriteCharacteristicRequest.parseFrom(call.arguments as ByteArray)
         bleClient.writeOperation(writeCharMessage.characteristic.deviceId,
                 uuidConverter.uuidFromByteArray(writeCharMessage.characteristic.characteristicUuid.data.toByteArray()),
+                writeCharMessage.characteristic.characteristicIndex.toIntOrNull(),
                 writeCharMessage.value.toByteArray())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ operationResult ->
@@ -262,8 +266,21 @@ class PluginController {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ discoverResult ->
                     result.success(protoConverter.convertDiscoverServicesInfo(request.deviceId, discoverResult).toByteArray())
-                }, {
-                    throwable -> result.error("service_discovery_failure", throwable.message, null)
+                }, { throwable ->
+                    result.error("service_discovery_failure", throwable.message, null)
+                })
+                .discard()
+    }
+
+    private fun getDiscoveredServices(call: MethodCall, result: Result) {
+        val request = pb.GetDiscoveredServicesRequest.parseFrom(call.arguments as ByteArray)
+
+        bleClient.getDiscoveredServices(request.deviceId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ discoverResult ->
+                    result.success(protoConverter.convertDiscoverServicesInfo(request.deviceId, discoverResult).toByteArray())
+                }, { throwable ->
+                    result.error("get_discovered_services_failure", throwable.message, null)
                 })
                 .discard()
     }
