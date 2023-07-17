@@ -48,7 +48,7 @@ You need to add the following permissions to your AndroidManifest.xml file:
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="30" />
 ```
 
-If you use `BLUETOOTH_SCAN` to determine location, modify your AndroidManfiest.xml file to include the following entry:
+If you use `BLUETOOTH_SCAN` to determine location, modify your AndroidManifest.xml file to include the following entry:
 
 ```xml
  <uses-permission android:name="android.permission.BLUETOOTH_SCAN" 
@@ -69,7 +69,7 @@ This will prevent issues like [#131](https://github.com/PhilipsHue/flutter_react
 
 ### iOS
 
-For iOS it is required you add the following entries to the `Info.plist` file of your app. It is not allowed to access Core BLuetooth without this. See [our example app](https://github.com/PhilipsHue/flutter_reactive_ble/blob/master/example/ios/Runner/Info.plist) on how to implement this. For more indepth details: [Blog post on iOS bluetooth permissions](https://medium.com/flawless-app-stories/handling-ios-13-bluetooth-permissions-26c6a8cbb816)
+For iOS it is required you add the following entries to the `Info.plist` file of your app. It is not allowed to access Core Bluetooth without this. See [our example app](https://github.com/PhilipsHue/flutter_reactive_ble/blob/master/example/ios/Runner/Info.plist) on how to implement this. For more in depth details: [Blog post on iOS bluetooth permissions](https://medium.com/flawless-app-stories/handling-ios-13-bluetooth-permissions-26c6a8cbb816)
 
 iOS13 and higher
 * NSBluetoothAlwaysUsageDescription
@@ -212,7 +212,7 @@ The following operations will only have effect for Android and are not supported
 
 On Android you can send a connection priority update to the BLE device. The parameter `priority` is an enum that uses the same spec
  as the [BluetoothGatt Android spec](https://developer.android.com/reference/android/bluetooth/BluetoothGatt#requestConnectionPriority(int)).
- Using `highPerformance` will increase battery usage but will speed up GATT operations. Be cautious when setting the priority when communicating with multiple devices because if you set highperformance for all devices the effect of increasing the priority will be lower.
+ Using `highPerformance` will increase battery usage but will speed up GATT operations. Be cautious when setting the priority when communicating with multiple devices because if you set highPerformance for all devices the effect of increasing the priority will be lower.
 
 ```dart
 await flutterReactiveBle.requestConnectionPriority(deviceId: foundDeviceId, priority:  ConnectionPriority.highPerformance);
@@ -235,9 +235,9 @@ await flutterReactiveBle.clearGattCache(foundDeviceId);
 On Android side we use the [RxAndroidBle](https://github.com/Polidea/RxAndroidBle) library of Polidea. After migration towards RxJava 2 some of the errors are not routed properly to their listeners and thus this will result in a BLE Undeliverable Exception. The root cause lies in the threading of the Android OS. As workaround RxJava has a hook where you can set the global errorhandler. For more info see [RxJava docs](https://github.com/ReactiveX/RxJava/wiki/What's-different-in-2.0#error-handling) .
 
 
-A default workaround implementation in the Flutter app (needs to be in the Java / Kotlin part e.g. mainactivity) is shown below. For an example (in Java) see Polidea RxAndroidBle [sample](https://github.com/Polidea/RxAndroidBle/tree/master/sample/src/main/java/com/polidea/rxandroidble2/sample).
+A default workaround implementation in the Flutter app (needs to be in the Java / Kotlin part e.g. mainActivity) is shown below. For an example (in Java) see Polidea RxAndroidBle [sample](https://github.com/Polidea/RxAndroidBle/tree/master/sample/src/main/java/com/polidea/rxandroidble2/sample).
 
-BleException is coming from Polidea RxAndroidBle, so make sure your application declares the following depedency: `implementation "com.polidea.rxandroidble2:rxandroidble:1.11.1"`
+BleException is coming from Polidea RxAndroidBle, so make sure your application declares the following dependency: `implementation "com.polidea.rxandroidble2:rxandroidble:1.11.1"`
 
 ```kotlin
 RxJavaPlugins.setErrorHandler { throwable ->

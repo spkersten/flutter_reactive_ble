@@ -21,7 +21,7 @@ final class StreamHandler<Context: AnyObject>: NSObject, FlutterStreamHandler {
 
         guard let context = context
         else {
-            return PluginError.internalInconcictency(
+            return PluginError.internalInconsistency(
                     details: "\(StreamHandler.self)(name: \"\(name)\").\(#function) is called when the context is destroyed"
                 )
                 .asFlutterError
@@ -35,7 +35,7 @@ final class StreamHandler<Context: AnyObject>: NSObject, FlutterStreamHandler {
 
         guard let context = context
         else {
-            return PluginError.internalInconcictency(
+            return PluginError.internalInconsistency(
                     details: "\(StreamHandler.self)(name: \"\(name)\").\(#function) is called when the context is destroyed"
                 )
                 .asFlutterError

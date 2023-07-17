@@ -21,7 +21,7 @@ fun RxBleClient.State.toBleState(): BleStatus =
 fun Int.toConnectionPriority() =
         when (this) {
             0 -> ConnectionPriority.BALANCED
-            1 -> ConnectionPriority.HIGH_PERFORMACE
+            1 -> ConnectionPriority.HIGH_PERFORMANCE
             2 -> ConnectionPriority.LOW_POWER
             else -> ConnectionPriority.BALANCED
         }

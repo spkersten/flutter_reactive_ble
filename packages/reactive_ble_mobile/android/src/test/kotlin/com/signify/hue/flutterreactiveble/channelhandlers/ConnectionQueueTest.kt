@@ -47,7 +47,7 @@ class ConnectionQueueTest {
     }
 
     @Test
-    fun `should return an emptylist when queue is created`() {
+    fun `should return an empty list when queue is created`() {
         assertThat(sut.observeQueue().test().values().first().size).isEqualTo(0)
     }
 
@@ -60,7 +60,7 @@ class ConnectionQueueTest {
     }
 
     @Test
-    fun `should be ordened in the sequence of adding`() {
+    fun `should be ordered in the sequence of adding`() {
         val expectedQueue = listOf("test1", "test2")
         val observable = sut.observeQueue().test()
         sut.addToQueue("test1")

@@ -47,7 +47,7 @@
 ## 2.7.2
 
 * Fix #188 `subscribeToCharacteristic` fails when characteristic config descriptor is not present.
-* Fix #195 `scanFailure` when using backgroundmode messaging Firebase.
+* Fix #195 `scanFailure` when using background mode messaging Firebase.
 
 ## 2.7.1
 
@@ -65,7 +65,7 @@
 
 ## 2.6.1
 
-* Prevent incrorrect propagation of error in case observing BLE status fails.
+* Prevent incorrect propagation of error in case observing BLE status fails.
 
 ## 2.6.0
 
@@ -80,7 +80,7 @@
 
 ## 2.5.2
 
-* Update Android protobuf and depedencies to support new Android sdk.
+* Update Android protobuf and dependencies to support new Android sdk.
 * Fix #114 Throwing faulty error when executing hot restart during scanning on Android.
 
 ## 2.5.1
@@ -117,7 +117,7 @@
 
 * Improve documentation of public API.
 * Fix for write without response on iOS.
-* Add support for newer Flutter versions. Remove support for FLutter lower than v1.10.
+* Add support for newer Flutter versions. Remove support for Flutter lower than v1.10.
 
 ## 2.0.0+1
 

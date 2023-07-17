@@ -128,7 +128,7 @@ void main() {
         await _sut.deinitialize();
       });
 
-      test('It executes deinitialize succesfull', () {
+      test('It executes deinitialize successful', () {
         expect(true, true);
       });
     });

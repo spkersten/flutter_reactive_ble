@@ -167,7 +167,7 @@ final class PluginController {
         else { return PluginError.notInitialized.asFlutterError }
 
         guard let scan = scan
-        else { return PluginError.internalInconcictency(details: "a scanning task has not been initialized yet, but a client has subscribed").asFlutterError }
+        else { return PluginError.internalInconsistency(details: "a scanning task has not been initialized yet, but a client has subscribed").asFlutterError }
 
         self.scan = scan.with(sink: sink)
 

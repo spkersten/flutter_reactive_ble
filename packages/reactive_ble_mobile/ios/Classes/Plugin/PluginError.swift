@@ -4,7 +4,7 @@ enum PluginError: Error {
 
     case unknown(Error)
 
-    case internalInconcictency(details: String?)
+    case internalInconsistency(details: String?)
 
     case unsupportedMethodCall(method: String)
     case invalidMethodCall(method: String, details: String?)
@@ -20,7 +20,7 @@ enum PluginError: Error {
         switch self {
         case .unknown(let error as NSError):
             return makeFlutterError(code: "\(error.domain):\(error.code)", message: error.localizedDescription, details: error.userInfo)
-        case .internalInconcictency(let details):
+        case .internalInconsistency(let details):
             let extra = details.map { " (\($0))" } ?? ""
             return makeFlutterError(message: "internal inconsistency" + extra)
         case .unsupportedMethodCall(let method):

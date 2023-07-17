@@ -238,7 +238,7 @@ void main() {
           expect(result.serviceUuids.isEmpty, true);
         });
 
-        test('It converts scanmode', () {
+        test('It converts scanMode', () {
           expect(result.scanMode, 2);
         });
 
@@ -260,7 +260,7 @@ void main() {
           expect(result.serviceUuids.first.data, [254, 255]);
         });
 
-        test('It converts scanmode', () {
+        test('It converts scanMode', () {
           expect(result.scanMode, 2);
         });
 
@@ -291,7 +291,7 @@ void main() {
           ]);
         });
 
-        test('It converts scanmode', () {
+        test('It converts scanMode', () {
           expect(result.scanMode, 2);
         });
 
@@ -343,7 +343,7 @@ void main() {
     });
 
     group('DiscoverDevices request', () {
-      const deviceId = "testdevice";
+      const deviceId = "test device";
       late pb.DiscoverServicesRequest result;
 
       setUp(() {

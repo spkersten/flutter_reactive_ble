@@ -65,8 +65,8 @@ class DeviceConnectorTest {
     }
 
     @Nested
-    @DisplayName ("Successfull connection")
-    inner class SuccesfullConnectionTest {
+    @DisplayName ("Successful connection")
+    inner class SuccessfulConnectionTest {
 
         @BeforeEach
         fun setup() {
@@ -99,7 +99,7 @@ class DeviceConnectorTest {
         }
 
         @Test
-        @DisplayName("Updates listeners in case of succesfull connection")
+        @DisplayName("Updates listeners in case of successful connection")
         fun updatesWhenSuccess() {
             sut.connection.test()
 
@@ -108,7 +108,7 @@ class DeviceConnectorTest {
         }
 
         @Test
-        @DisplayName("Connects to device only once in casealready connected")
+        @DisplayName("Connects to device only once in case already connected")
         fun connectOnlyOnceAlreadyConnected() {
             sut.connection.test()
             every { device.connectionState }.returns(RxBleConnection.RxBleConnectionState.CONNECTED)
@@ -129,7 +129,7 @@ class DeviceConnectorTest {
 
     @Nested
     @DisplayName ("Failed connection")
-    inner class NotSuccesfullConnectionTest {
+    inner class NotSuccessfulConnectionTest {
         private val errorMessage = "aaa"
 
         @BeforeEach

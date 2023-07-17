@@ -93,13 +93,13 @@ class ProtobufMessageConverter {
             request: pb.CharacteristicAddress,
             error: String?
     ): pb.CharacteristicValueInfo {
-        val characteristicAdress = createCharacteristicAddress(request)
+        val characteristicAddress = createCharacteristicAddress(request)
         val failure = pb.GenericFailure.newBuilder()
                 .setCode(CharacteristicErrorType.UNKNOWN.code)
                 .setMessage(error ?: "Unknown error")
 
         return pb.CharacteristicValueInfo.newBuilder()
-                .setCharacteristic(characteristicAdress)
+                .setCharacteristic(characteristicAddress)
                 .setFailure(failure)
                 .build()
     }

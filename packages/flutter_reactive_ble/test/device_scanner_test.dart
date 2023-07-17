@@ -47,21 +47,21 @@ void main() {
 
       late List<Uuid> withServices;
       late bool locationEnabled;
-      late ScanMode scanmode;
+      late ScanMode scanMode;
 
       setUp(() {
         withServices = [Uuid.parse('FEFF')];
         locationEnabled = false;
-        scanmode = ScanMode.lowLatency;
+        scanMode = ScanMode.lowLatency;
 
         when(_blePlatform.scanForDevices(
           withServices: withServices,
-          scanMode: scanmode,
+          scanMode: scanMode,
           requireLocationServicesEnabled: locationEnabled,
         )).thenAnswer((_) => Stream.fromIterable([0]));
       });
 
-      group('When scan is sucesfull', () {
+      group('When scan is successful', () {
         setUp(() {
           final result1 = ScanResult(
             result:
@@ -88,7 +88,7 @@ void main() {
             );
             scanStream = _sut.scanForDevices(
               withServices: withServices,
-              scanMode: scanmode,
+              scanMode: scanMode,
               requireLocationServicesEnabled: locationEnabled,
             );
           });
@@ -124,7 +124,7 @@ void main() {
             );
             scanStream = _sut.scanForDevices(
               withServices: withServices,
-              scanMode: scanmode,
+              scanMode: scanMode,
               requireLocationServicesEnabled: locationEnabled,
             );
           });
@@ -176,7 +176,7 @@ void main() {
 
           scanStream = _sut.scanForDevices(
             withServices: withServices,
-            scanMode: scanmode,
+            scanMode: scanMode,
             requireLocationServicesEnabled: locationEnabled,
           );
         });

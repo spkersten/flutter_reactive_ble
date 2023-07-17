@@ -62,6 +62,6 @@ enum class BleStatus(val code: Int) {
 
 enum class ConnectionPriority(val code: Int) {
     BALANCED(code = 0),
-    HIGH_PERFORMACE(code = 1),
+    HIGH_PERFORMANCE(code = 1),
     LOW_POWER(code = 2)
 }

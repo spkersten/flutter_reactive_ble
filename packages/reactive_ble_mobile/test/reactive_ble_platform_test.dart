@@ -106,7 +106,7 @@ void main() {
         )).called(1);
       });
 
-      test('It executes the request succesfully', () async {
+      test('It executes the request successfully', () async {
         expect(true, true);
       });
     });
